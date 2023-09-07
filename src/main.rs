@@ -5,7 +5,11 @@ use std::io::Read;
 use std::process;
 use std::str;
 
+use crate::scanner::Scanner;
+use crate::token::Token;
+
 mod token;
+mod scanner;
 static mut HAD_ERROR: bool = false;
 
 fn main() {

@@ -1,4 +1,8 @@
-pub enum TokenType {
+use core::fmt;
+use std::any::Any;
+
+#[derive(Debug)]
+pub enum TokenType{
     // single character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, 
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
@@ -15,4 +19,24 @@ pub enum TokenType {
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
     EOF
+}
+
+impl fmt::Display for TokenType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+pub struct Token {
+    pub token_type: TokenType,
+    pub lexme: String,
+    pub literal: Box<dyn Any>,
+    pub line: usize,
+}
+
+impl Token {
+    pub fn to_string(&self) -> String{
+        let s = self.token_type.to_string() + " " + &self.lexme + " " + &self.line.to_string();
+        s.to_string()
+    }
 }
