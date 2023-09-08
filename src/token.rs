@@ -1,7 +1,8 @@
 use core::fmt;
 use std::any::Any;
+use std::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType{
     // single character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, 
@@ -27,6 +28,7 @@ impl fmt::Display for TokenType {
     }
 }
 
+#[derive(Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexme: String,
