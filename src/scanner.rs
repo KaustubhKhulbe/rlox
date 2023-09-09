@@ -1,4 +1,4 @@
-use std::{any::Any, ops::{AddAssign, Add}, fmt::Debug, collections::HashMap, sync::{Mutex, MutexGuard}};
+use std::{any::Any, fmt::Debug, collections::HashMap, sync::{Mutex, MutexGuard}};
 
 use crate::{token::{Token, TokenType}, error};
 use lazy_static::lazy_static;
@@ -187,6 +187,7 @@ impl Scanner<'_> {
         self.add_token(TokenType::NUMBER, Box::new(value.parse::<f64>().unwrap()));
     }
 
+    #[allow(dead_code)]
     pub fn extract_float(tok: &Token) -> f64{
         *match tok.literal.as_any().downcast_ref::<f64>() {
             Some(f) => f,
@@ -194,6 +195,7 @@ impl Scanner<'_> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn extract_str(tok: &Token) -> String{
         match tok.literal.as_any().downcast_ref::<String>() {
             Some(str) => str.to_string(),

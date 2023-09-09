@@ -1,15 +1,11 @@
-use std::any::Any;
-use std::{env, io};
+use std::io;
 use std::fs::File;
 use std::io::{BufReader, Write};
 use std::io::Read;
 use std::process;
 use std::str;
 
-use token::TokenType;
-
 use crate::scanner::Scanner;
-use crate::token::Token;
 
 mod token;
 mod scanner;

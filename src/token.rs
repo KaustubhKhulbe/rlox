@@ -1,5 +1,4 @@
 use core::fmt;
-use std::any::Any;
 use std::fmt::Debug;
 
 use crate::scanner::Literal;
