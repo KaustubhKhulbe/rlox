@@ -1,9 +1,12 @@
+use std::any::Any;
 use std::{env, io};
 use std::fs::File;
 use std::io::{BufReader, Write};
 use std::io::Read;
 use std::process;
 use std::str;
+
+use token::TokenType;
 
 use crate::scanner::Scanner;
 use crate::token::Token;
@@ -13,16 +16,23 @@ mod scanner;
 static mut HAD_ERROR: bool = false;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    println!("{}", args.len());
-    if args.len() > 2 {
-        dbg!("Too many arguments");
-        process::exit(0b1000000);
-    } else if args.len() == 2 {
-        run_file(&args[1]).ok();
-    } else {
-        run_prompt();
+
+    let mut s = Scanner::new("for (var i = 0; i <= 10; i += 1) {print(\"HI\")}".to_string());
+    s.scan_tokens();
+    for i in &s.tokens {
+        println!("{}", i.to_string());
     }
+
+    // let args: Vec<String> = env::args().collect();
+    // println!("{}", args.len());
+    // if args.len() > 2 {
+    //     dbg!("Too many arguments");
+    //     process::exit(0b1000000);
+    // } else if args.len() == 2 {
+    //     run_file(&args[1]).ok();
+    // } else {
+    //     run_prompt();
+    // }
 }
 
 pub fn convert_bytes_to_string(buffer: &Vec<u8>) -> &str {
@@ -50,7 +60,7 @@ pub fn run_file(path: &String) -> io::Result<()>{
 }
 
 pub fn run_prompt() {
-    eprintln!("Press Enter to return.");
+    println!("Press Enter to return.");
     let s = &mut String::new();
     loop {
         print!("> ");
@@ -69,7 +79,7 @@ pub fn run_prompt() {
 
 pub fn run(s: String) {
     // todo!("Implement run");
-    println!("{}", s);
+    print!("{}", s);
 }
 
 pub fn error(line: u32, message: &str) {

@@ -2,7 +2,9 @@ use core::fmt;
 use std::any::Any;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+use crate::scanner::Literal;
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType{
     // single character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, 
@@ -32,13 +34,16 @@ impl fmt::Display for TokenType {
 pub struct Token {
     pub token_type: TokenType,
     pub lexme: String,
-    pub literal: Box<dyn Any>,
+    pub literal: Box<dyn Literal>,
     pub line: usize,
 }
 
 impl Token {
     pub fn to_string(&self) -> String{
-        let s = self.token_type.to_string() + " " + &self.lexme + " " + &self.line.to_string();
+        let s = 
+        "tok: ".to_string() + &self.token_type.to_string() + 
+        " lex: " + &self.lexme + 
+        " line: " + &self.line.to_string();
         s.to_string()
     }
 }

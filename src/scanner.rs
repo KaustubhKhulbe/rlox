@@ -1,18 +1,60 @@
-use std::any::Any;
+use std::{any::Any, ops::{AddAssign, Add}, fmt::Debug, collections::HashMap, sync::{Mutex, MutexGuard}};
 
 use crate::{token::{Token, TokenType}, error};
+use lazy_static::lazy_static;
 
-pub struct Scanner {
+lazy_static! {
+    static ref HASHMAP: Mutex<HashMap<&'static str, TokenType>> = {
+        let mut m = HashMap::new();
+        m.insert("and", TokenType::AND);
+        m.insert("class", TokenType::CLASS);
+        m.insert("else", TokenType::ELSE);
+        m.insert("false", TokenType::FALSE);
+        m.insert("for", TokenType::FOR);
+        m.insert("fun", TokenType::FUN);
+        m.insert("if", TokenType::IF);
+        m.insert("nil", TokenType::NIL);
+        m.insert("or", TokenType::OR);
+        m.insert("print", TokenType::PRINT);
+        m.insert("return", TokenType::RETURN);
+        m.insert("super", TokenType::SUPER);
+        m.insert("this", TokenType::THIS);
+        m.insert("true", TokenType::TRUE);
+        m.insert("var", TokenType::VAR);
+        m.insert("while", TokenType::WHILE);
+
+        Mutex::new(m)
+    };    
+}
+
+pub trait Literal : Debug {
+    fn as_any(&self) -> &dyn Any;
+}
+
+impl Literal for f64 {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl Literal for String {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+pub struct Scanner<'a> {
     pub source: String,
     pub source_chars: Vec<char>,
     pub tokens: Vec<Token>,
     start: usize,
     current: usize,
     line: usize,
+    map: MutexGuard<'a, HashMap<&'static str, TokenType>>,
 }
 
-impl Scanner {
-    pub fn new(source: String) -> Scanner {
+impl Scanner<'_> {
+    pub fn new(source: String) -> Scanner<'static> {
         let text = source.as_str();
 
             Scanner{
@@ -22,6 +64,7 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
+            map: HASHMAP.lock().unwrap()
         }
     }
 
@@ -34,7 +77,7 @@ impl Scanner {
         let eof = Token {
             token_type: TokenType::EOF,
             lexme: "".to_string(),
-            literal: Box::new({}),
+            literal: Box::new(0.0),
             line: self.line,
         };
 
@@ -59,6 +102,7 @@ impl Scanner {
             '-' => self.add_token2(TokenType::MINUS),
             '+' => self.add_token2(TokenType::PLUS),
             '*' => self.add_token2(TokenType::STAR),
+            ';' => self.add_token2(TokenType::SEMICOLON),
             '!' => if self.matched('=') { self.add_token2(TokenType::BANG_EQUAL)} else {self.add_token2(TokenType::BANG)},
             '=' => if self.matched('=') { self.add_token2(TokenType::EQUAL_EQUAL)} else {self.add_token2(TokenType::EQUAL)},
             '<' => if self.matched('=') { self.add_token2(TokenType::LESS_EQUAL)} else {self.add_token2(TokenType::LESS)},
@@ -72,19 +116,29 @@ impl Scanner {
             '\r' => (),
             '\t' => (),
             '\n' => self.line += 1,
+            '"' => {self.string()},
 
-            _ => error(self.line.try_into().unwrap(), "Unexpected character.")
+            _ => {
+                if c.is_numeric() {
+                    self.number();
+                } else if self.is_alpha(c) {
+                    self.identifier();
+                }
+                else {
+                    error(self.line.try_into().unwrap(), "Unexpected character.")
+                }
+            }
         }
     }
 
-    pub fn add_token(&mut self, token: TokenType, token_type: Box<dyn Any>) {
+    pub fn add_token(&mut self, token: TokenType, token_type: Box<dyn Literal>) {
         let text = &self.source[self.start..self.current];
         self.tokens.push(Token { token_type: token, lexme: text.to_string(), literal: token_type, line: self.line })
     }
 
     pub fn add_token2(&mut self, token: TokenType) {
         let text = &self.source[self.start..self.current];
-        self.tokens.push(Token { token_type: token, lexme: text.to_string(), literal: Box::new({}), line: self.line })
+        self.tokens.push(Token { token_type: token, lexme: text.to_string(), literal: Box::new(0.0), line: self.line })
     }
 
     pub fn advance(&mut self) -> char{
@@ -103,6 +157,67 @@ impl Scanner {
     fn peek(&self) -> char {
         if self.is_at_end() { return '\0' }
         self.source_chars[self.current]
+    }
+
+    pub fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line+= 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            error(self.line.try_into().unwrap(), "Unterminated string.");
+        }
+
+        self.advance();
+
+        let value: String = self.source[self.start+1..self.current-1].to_string();
+        dbg!(&value);
+        self.add_token(TokenType::STRING, Box::new(value));
+    }
+
+    fn number(&mut self) {
+        while (self.peek().is_numeric() || self.peek() == '.') && !self.is_at_end() {
+            self.advance();
+        }
+        
+        let value = self.source[self.start..self.current].to_string();
+        self.add_token(TokenType::NUMBER, Box::new(value.parse::<f64>().unwrap()));
+    }
+
+    pub fn extract_float(tok: &Token) -> f64{
+        *match tok.literal.as_any().downcast_ref::<f64>() {
+            Some(f) => f,
+            None => panic!("Token Literal is not f64"),
+        }
+    }
+
+    pub fn extract_str(tok: &Token) -> String{
+        match tok.literal.as_any().downcast_ref::<String>() {
+            Some(str) => str.to_string(),
+            None => panic!("Token Literal is not String"),
+        }
+    }
+
+    fn is_alpha(&mut self, c: char) -> bool {
+        c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
+    }
+
+    fn is_alpha_numeric(&mut self, c: char) -> bool {
+        self.is_alpha(c) || c.is_numeric()
+    }
+
+    fn identifier(&mut self) {
+        while self.is_alpha_numeric(self.peek()) { self.advance(); }
+        let text = &self.source[self.start..self.current];
+        let t = *match self.map.get(text) {
+            Some(x) => x,
+            None => &TokenType::IDENTIFIER,
+        };
+
+        self.add_token(t, Box::new(0.0));
     }
 }
 
@@ -163,11 +278,13 @@ mod tests {
 
     #[test]
     fn scanner_scan_toks() {
-        let mut s = Scanner::new("(({) / // \n {".to_string());
+        let mut s = Scanner::new("(({) / // \n { \"Hello World\" 3.14".to_string());
         s.scan_tokens();
-        let toks = [TokenType::LEFT_PAREN, TokenType::LEFT_PAREN, TokenType::LEFT_BRACE, TokenType::RIGHT_PAREN, TokenType::SLASH, TokenType::LEFT_BRACE, TokenType::EOF];
+        let toks = [TokenType::LEFT_PAREN, TokenType::LEFT_PAREN, TokenType::LEFT_BRACE, TokenType::RIGHT_PAREN, TokenType::SLASH, TokenType::LEFT_BRACE, TokenType::STRING, TokenType::NUMBER, TokenType::EOF];
         for i in 0..s.tokens.len() {
             assert_eq!(s.tokens[i].token_type, toks[i]);
         }
+
+        dbg!(&s.tokens[s.tokens.len()-1].to_string());
     }
 }
