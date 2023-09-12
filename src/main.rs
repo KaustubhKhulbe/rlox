@@ -1,22 +1,23 @@
-use std::{process, env, fs::File, io::{BufReader, self, Write, Read}};
+use std::{process, fs::File, io::{BufReader, self, Write, Read}};
 
-use scanner::Token;
+
 
 use crate::expr::Expr;
 
 mod scanner;
 mod expr;
+mod parser;
 
 static mut HAD_ERROR: bool = false;
 
 fn main() {
 
-    let expression = Expr::Binary(
-        Box::new(Expr::Unary(
-            Box::new(Expr::UnaryOp(expr::UnaryOperator::Minus)), Box::new(Expr::Literal(scanner::Literal::Num(123_f64))))), 
-        Box::new(Expr::BinaryOp(expr::BinaryOperator::Star)), Box::new(Expr::Grouping(Box::new(Expr::Literal(scanner::Literal::Num(45.67))))));
+    // let expression = Expr::Binary(
+    //     Box::new(Expr::Unary(
+    //         Box::new(Expr::UnaryOp(expr::UnaryOperator::Minus)), Box::new(Expr::Literal(scanner::Literal::Num(123_f64))))), 
+    //     Box::new(Expr::BinaryOp(expr::BinaryOperator::Star)), Box::new(Expr::Grouping(Box::new(Expr::Literal(scanner::Literal::Num(45.67))))));
     
-    println!("{}", Expr::visit(expression));
+    // println!("{}", Expr::visit(expression));
 
     // let mut s = scanner::Scanner::default();
     // s.scan_tokens("()()".to_string());

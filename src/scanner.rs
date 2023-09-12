@@ -29,10 +29,13 @@ impl fmt::Display for TokenType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Literal {
     Str(String),
     Num(f64),
+    False,
+    True,
+    Nil
 }
 
 impl Display for Literal {
@@ -40,11 +43,12 @@ impl Display for Literal {
         match self {
             Self::Str(s) => write!(f, "{}", s),
             Self::Num(n) => write!(f, "{}", n),
+            s => write!(f, "{}", s)
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexme: String,

@@ -1,6 +1,6 @@
 use std::fmt::{Display, self};
 
-use crate::scanner::{Literal};
+use crate::scanner::{Literal, TokenType};
 
 pub trait Visitor {
     // fn visit_binary_expr(expr: Expr) -> String;
@@ -22,8 +22,8 @@ impl Expr {
             Expr::Unary(operator, expression) => Expr::parenthesize("Unary Operation".to_string(), vec![*operator, *expression]),
             Expr::Grouping(group) => Expr::parenthesize("Grouping Operation".to_string(), vec![*group]),
             Expr::Literal(literal) => format!("{}", literal),
-            Expr::BinaryOp(operator) => operator.to_string(),
-            Expr::UnaryOp(operator) => operator.to_string(),
+            Expr::BinaryOp(operator) => operator.token_type.to_string(),
+            Expr::UnaryOp(operator) => operator.token_type.to_string(),
             _ => "".to_string()
         }
     }
@@ -45,7 +45,7 @@ impl Visitor for Expr {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum BinaryOperator {
+pub enum BinaryOperatorEnum {
     EqualEqual,
     NotEqual,
     Less,
@@ -58,7 +58,7 @@ pub enum BinaryOperator {
     Slash,
 }
 
-impl Display for BinaryOperator {
+impl Display for BinaryOperatorEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EqualEqual => write!(f, "=="),
@@ -75,12 +75,26 @@ impl Display for BinaryOperator {
     }
 }
 
-pub enum UnaryOperator {
+pub struct BinaryOperator {
+    pub token_type: BinaryOperatorEnum,
+    pub lexme: String,
+    pub literal: Option<Literal>,
+    pub line: usize,
+}
+
+pub enum UnaryOperatorEnum {
     Minus,
     Bang
 }
 
-impl Display for UnaryOperator {
+pub struct UnaryOperator {
+    pub token_type: UnaryOperatorEnum,
+    pub lexme: String,
+    pub literal: Option<Literal>,
+    pub line: usize,
+}
+
+impl Display for UnaryOperatorEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Minus => write!(f, "-"),
