@@ -6,6 +6,7 @@ pub trait Visitor {
     // fn visit_binary_expr(expr: Expr) -> String;
     fn accept(&self, visitor: Box<dyn Visitor>);
 }
+#[derive(Debug)]
 pub enum Expr {
     Literal(Literal),
     Unary(Box<Expr>, Box<Expr>),
@@ -75,6 +76,7 @@ impl Display for BinaryOperatorEnum {
     }
 }
 
+#[derive(Debug)]
 pub struct BinaryOperator {
     pub token_type: BinaryOperatorEnum,
     pub lexme: String,
@@ -82,11 +84,13 @@ pub struct BinaryOperator {
     pub line: usize,
 }
 
+#[derive(Debug)]
 pub enum UnaryOperatorEnum {
     Minus,
     Bang
 }
 
+#[derive(Debug)]
 pub struct UnaryOperator {
     pub token_type: UnaryOperatorEnum,
     pub lexme: String,

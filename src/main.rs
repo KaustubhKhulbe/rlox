@@ -2,6 +2,8 @@ use std::{process, fs::File, io::{BufReader, self, Write, Read}};
 
 
 
+use parser::Parser;
+
 use crate::expr::Expr;
 
 mod scanner;
@@ -11,6 +13,21 @@ mod parser;
 static mut HAD_ERROR: bool = false;
 
 fn main() {
+
+    let mut s = scanner::Scanner::default();
+    let mut vecs = s.scan_tokens("(1 + 2) * 3;".to_string());
+    for tok in vecs {
+        println!("{:?}", tok);
+    }
+
+    let mut parser = Parser{
+        start: 0,
+        current: 0,
+        tokens: vecs.to_vec(),
+    };
+
+    let expr = parser.parse();
+    dbg!("{:?}", expr);
 
     // let expression = Expr::Binary(
     //     Box::new(Expr::Unary(
