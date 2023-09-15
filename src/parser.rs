@@ -67,8 +67,9 @@ impl Parser {
     fn unary(&mut self) -> Result<Expr, ParserError> {
         if self.search(vec![TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous();
-            let right = self.unary();
-            return Ok(Expr::Unary(Box::new(self.expr_from_tok(operator).unwrap()), Box::new(right.unwrap())));
+            let right = self.unary().unwrap();
+            self.expr_from_tok(operator.clone()).unwrap();
+            return Ok(Expr::Unary(Box::new(self.expr_from_tok(operator).unwrap()), Box::new(right)));
         }
 
         self.primary()
@@ -239,6 +240,13 @@ impl Parser {
                 token_type: crate::expr::BinaryOperatorEnum::Slash,
                 lexme: operator.lexme,
                 literal: operator.literal,
+                line: operator.line
+            })),
+
+            TokenType::Bang => Ok(Expr::UnaryOp(expr::UnaryOperator { 
+                token_type: crate::expr::UnaryOperatorEnum::Bang, 
+                lexme: operator.lexme, 
+                literal: operator.literal, 
                 line: operator.line
             })),
             _ => {

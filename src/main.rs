@@ -11,14 +11,12 @@ mod expr;
 mod parser;
 
 static mut HAD_ERROR: bool = false;
-
 fn main() {
-
     let mut s = scanner::Scanner::default();
-    let mut vecs = s.scan_tokens("(1 + 2) * 3;".to_string());
-    for tok in vecs {
-        println!("{:?}", tok);
-    }
+    let mut vecs = s.scan_tokens("!( ((4 * 5) / (1 / 2)) == 2);".to_string());
+    // for tok in vecs {
+    //     println!("{:?}", tok);
+    // }
 
     let mut parser = Parser{
         start: 0,

@@ -149,10 +149,10 @@ impl Scanner {
             '+' => self.add_token2(TokenType::Plus),
             '*' => self.add_token2(TokenType::Star),
             ';' => self.add_token2(TokenType::Semicolon),
-            '!' => if self.matched('=') { self.add_token2(TokenType::BangEqual)} else {self.add_token2(TokenType::Bang)},
-            '=' => if self.matched('=') { self.add_token2(TokenType::EqualEqual)} else {self.add_token2(TokenType::Equal)},
-            '<' => if self.matched('=') { self.add_token2(TokenType::LessEqual)} else {self.add_token2(TokenType::Less)},
-            '>' => if self.matched('=') { self.add_token2(TokenType::GreaterEqual)} else {self.add_token2(TokenType::Greater)},
+            '!' => if self.matched('=') {self.add_token2(TokenType::BangEqual)} else {self.add_token2(TokenType::Bang)},
+            '=' => if self.matched('=') {self.add_token2(TokenType::EqualEqual)} else {self.add_token2(TokenType::Equal)},
+            '<' => if self.matched('=') {self.add_token2(TokenType::LessEqual)} else {self.add_token2(TokenType::Less)},
+            '>' => if self.matched('=') {self.add_token2(TokenType::GreaterEqual)} else {self.add_token2(TokenType::Greater)},
             '/' => { // todo(CHECK why unreachable pattern)
                 if self.matched('/') {
                     while self.peek() != '\n' && !self.is_at_end() {self.advance();}
@@ -201,9 +201,9 @@ impl Scanner {
         if self.is_at_end() { return false; }
 
         if self.source_chars[self.current] != expected {
-            self.current += 1;
             return false ;   
         }
+        self.current += 1;
         true
     }
 
@@ -233,7 +233,6 @@ impl Scanner {
         self.advance();
 
         let value: String = self.source[self.start+1..self.current-1].to_string();
-        dbg!(&value);
         self.add_token(TokenType::String, Some(Literal::Str(value)));
     }
 
